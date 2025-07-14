@@ -1113,7 +1113,10 @@ function stageClear() {
         nextStageButton.onclick = startNextStage;
     } else {
         nextStageButton.textContent = "GAME COMPLETE!";
-        nextStageButton.disabled = true;
+        nextStageButton.disabled = false; // ボタンを有効にする
+        nextStageButton.onclick = () => { // クリック時のリダイレクト処理を追加
+            window.location.href = 'https://hrkygoat.github.io/game1-4.github.io/'; // ここに指定のURLを設定
+        };
     }
 }
 
