@@ -534,6 +534,10 @@ class BossEnemy extends Enemy {
         this.invincibleDuration = 3000; // 3秒
         this.blinkTimer = 0;
         this.blinkInterval = 50;
+
+        // === 追加: 雑魚敵召喚関連 ===
+        this.minionSpawnCooldown = 5000; // 5秒
+        this.maxMinionSpawnCooldown = 5000; // 5秒ごとに雑魚敵を召喚
     }
 
     draw() {
@@ -595,6 +599,13 @@ class BossEnemy extends Enemy {
                 this.jumpCooldown = this.maxJumpCooldown; // 次のジャンプまでのクールダウンをリセット
             }
         }
+
+        // === 追加: 雑魚敵召喚ロジック ===
+        this.minionSpawnCooldown -= deltaTime;
+        if (this.minionSpawnCooldown <= 0) {
+            this.spawnMinion();
+            this.minionSpawnCooldown = this.maxMinionSpawnCooldown; // クールダウンをリセット
+        }
     }
 
     startJump() {
@@ -619,6 +630,18 @@ class BossEnemy extends Enemy {
             this.active = false; // activeをfalseにしてenemies配列から除外されるようにする
         }
     }
+
+    // === 追加: 雑魚敵を召喚するメソッド ===
+    spawnMinion() {
+        const minionWidth = 60;
+        const minionHeight = 60;
+        const minionSpeed = 100 + Math.random() * 50; // 通常の敵と同じ速度範囲
+        // ボスの近く（右側）にスポーン
+        const minionX = this.x + this.width + 20; 
+        const minionY = canvas.height - minionHeight; // 地面に着地
+        enemies.push(new Enemy(minionX, minionY, minionWidth, minionHeight, minionSpeed, assets.enemy.img));
+        console.log("Boss spawned a minion!");
+    }
 }
 
 let enemies = [];
@@ -635,8 +658,8 @@ function spawnEnemy() {
             const dropY = Math.random() * (canvas.height * 0.3); // 画面上部寄りのランダムな高さ
             enemies.push(new BombDropperEnemy(canvas.width, dropY, enemyWidth, enemyHeight, enemySpeed));
         } else if (random < 0.6) {
-            enemyWidth = 80;
-            enemyHeight = 40;
+            enemyWidth = 60;
+            enemyHeight = 60;
             enemySpeed = 100 + Math.random() * 50; // ピクセル/秒
             enemies.push(new Enemy(canvas.width, canvas.height - enemyHeight, enemyWidth, enemyHeight, enemySpeed, assets.enemy.img));
         } else if (random < 0.8) {
@@ -648,7 +671,7 @@ function spawnEnemy() {
             const frequency = 0.00005 + Math.random() * 0.00005; // ラジアン/ミリ秒
             enemies.push(new FlyingEnemy(canvas.width, flyY, enemyWidth, enemyHeight, enemySpeed, amplitude, frequency));
         } else {
-            enemyWidth = 80;
+            enemyWidth = 100;
             enemyHeight = 110;
             enemySpeed = 120 + Math.random() * 60; // ピクセル/秒
             enemies.push(new GroundEnemy2(canvas.width, canvas.height - enemyHeight, enemyWidth, enemyHeight, enemySpeed));
@@ -1014,8 +1037,7 @@ function spawnItem() {
 
     if (currentStage === 3) { // ステージ3のアイテム (以前のステージ1)
         itemType = random < 0.7 ? 'health' : 'invincibility';
-    } else if (currentStage === 4) { // ステージ4のアイテム (以前のステージ2)
-        // ステージ4ではボス撃破以外ではアイテムをスポーンさせない
+    } else if (currentStage === 4) { // ステージ4ではボス撃破以外ではアイテムをスポーンさせない
         return;
     }
     items.push(new Item(itemX, itemY, itemWidth, itemHeight, itemType));
